@@ -1,0 +1,37 @@
+<section class="jo-signup">
+    <form [formGroup]="signup" fxLayout="column" fxLayoutAlign="center center" class="jo-signup-form" (ngSubmit)="onSubmit()">
+        <h1>Join us at Shopping List!</h1>
+        <p>Start managing your shopping easily.</p>
+        <mat-error *ngIf="message">
+            {{ message }}
+        </mat-error>
+        <mat-form-field>
+            <input type="text" matInput formControlName="username" placeholder="user name" autocomplete="username">
+            <mat-hint>Enter a valid user name</mat-hint>
+            <mat-error>Enter a valid user name</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+            <input type="password" matInput formControlName="password" placeholder="password" >
+            <mat-hint>
+                Password must contain at least 1 upper case letter, 1 lower case letter and one number OR special character.
+            </mat-hint>
+            <mat-error>
+                Enter a valid password.
+                Password must contain at least 1 upper case letter, 1 lower case letter and one number OR special character.
+            </mat-error>
+        </mat-form-field>
+        <mat-form-field>
+            <input type="password" matInput formControlName="confirm" placeholder="confirm" >
+            <mat-hint>
+                Re-enter the above password.
+            </mat-hint>
+            <mat-error>
+                Password and confirmation are not identical. Try again.
+            </mat-error>
+        </mat-form-field>
+
+        <button id="btn_signup" type="submit" mat-raised-button color="primary" [disabled]="signup.invalid">
+            <span>Sign Up</span>
+        </button>
+    </form>
+</section>

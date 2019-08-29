@@ -1,0 +1,23 @@
+<div *ngIf="list" class="jo-list-items">
+    <div class="jo-table-header">
+        <label class="jo-item-description-label">Description</label>
+        <!--
+        <label class="jo-item-quantity-label">Quantity</label>
+        -->
+        <label class="jo-item-category-label">Category</label>
+        <button *ngIf="mode === 'edit'" id="btn_add" mat-fab (click)="onAdd()">
+            <mat-icon>add</mat-icon>
+        </button>
+        <mat-icon *ngIf="mode === 'shop'">check_box</mat-icon>
+    </div>
+    <div>
+        <app-list-item
+            *ngFor="let item of list?.items; let i = index; trackBy: trackByItemId"
+            [line]="lines.controls[i]"
+            [mode]="mode"
+            [item]="item"
+            (delete)="onDelete($event)"
+            (update)="onUpdate($event)"
+        ></app-list-item>
+    </div>
+</div>

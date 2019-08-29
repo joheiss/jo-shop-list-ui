@@ -1,0 +1,31 @@
+<section class="jo-confirm">
+    <form
+        [formGroup]="confirm"
+        fxLayout="column"
+        fxLayoutAlign="center center"
+        class="jo-confirm-form"
+        (ngSubmit)="onSubmit()"
+    >
+        <h1>Welcome to your shopping list</h1>
+        <p>Please confirm your account for your own security, using the code which we have sent to you.</p>
+        <mat-error *ngIf="message">
+            {{ message }}
+        </mat-error>
+        <mat-form-field>
+            <input type="text" matInput formControlName="username" placeholder="user name" autocomplete="username" />
+            <mat-hint>Enter a valid user name</mat-hint>
+            <mat-error>Enter a valid user name</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+            <input type="password" matInput formControlName="code" placeholder="code" />
+            <mat-hint>Enter the code we have recently sent to you</mat-hint>
+            <mat-error>Enter a valid code</mat-error>
+        </mat-form-field>
+        <button id="btn_confirm" type="submit" mat-raised-button color="primary" [disabled]="confirm.invalid">
+            <span>Confirm</span>
+        </button>
+        <a mat-button (click)="onRequest()" [disabled]="!confirm.value.username">
+            <span>Didn't receive a code? Request it again!</span>
+        </a>
+    </form>
+</section>

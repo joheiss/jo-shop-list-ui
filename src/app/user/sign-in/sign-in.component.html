@@ -1,0 +1,32 @@
+<section class="jo-signin">
+    <form
+        [formGroup]="signin"
+        fxLayout="column"
+        fxLayoutAlign="center center"
+        class="jo-signin-form"
+        (ngSubmit)="onSubmit()"
+    >
+        <h1>Welcome to your shopping list</h1>
+        <p>Fill in your username and password to sign in.</p>
+        <mat-error *ngIf="message" class="jo-error">
+            {{ message }}
+        </mat-error>
+        <mat-form-field>
+            <input type="text" matInput formControlName="username" placeholder="user name" autocomplete="username" />
+            <mat-hint>Enter a valid user name</mat-hint>
+            <mat-error>Enter a valid user name</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+            <input type="password" matInput formControlName="password" placeholder="password" autocomplete="password" />
+            <mat-hint>Enter your password</mat-hint>
+            <mat-error>Enter a valid password</mat-error>
+        </mat-form-field>
+        <button id="btn_signin" type="submit" mat-raised-button color="primary" [disabled]="signin.invalid">
+            <span>Sign In</span>
+        </button>
+        <a mat-button [routerLink]="['/signup']">
+            <span>Don't have an account? Sign up now!</span>
+        </a>
+    </form>
+</section>
+

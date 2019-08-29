@@ -1,0 +1,76 @@
+<section *ngIf="list" class="jo-shopping-list">
+    <div class="jo-form-container">
+        <form [formGroup]="form" fxLayout="column" fxLayoutAlign="center center" class="jo-list-form">
+            <mat-error *ngIf="message">
+                {{ message }}
+            </mat-error>
+            <div class="jo-list-title-line" fxLayout="column" fxLayoutGap="2rem" fxLayoutAlign="space-between">
+                <div class="jo-toolbar">
+                    <button id="btn_prev" mat-fab (click)="onPrev()" [disabled]="form.dirty || !existsPrev()">
+                        <mat-icon>navigate_before</mat-icon>
+                    </button>
+                    <div class="jo-buttons" fxLayout="row" fxLayoutGap="1rem" fxLayoutAlign="center">
+                        <button
+                            *ngIf="mode !== 'edit'"
+                            id="btn_edit"
+                            mat-fab
+                            (click)="onEdit()"
+                            [disabled]="mode === 'edit'"
+                        >
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                        <button id="btn_new" mat-fab (click)="onNew()" [disabled]="form.invalid || form.dirty">
+                            <mat-icon>note_add</mat-icon>
+                        </button>
+                        <button id="btn_copy" mat-fab (click)="onCopy()" [disabled]="form.invalid || form.dirty">
+                            <mat-icon>file_copy</mat-icon>
+                        </button>
+                        <button
+                            *ngIf="mode !== 'display'"
+                            id="btn_save"
+                            mat-fab
+                            (click)="onSave()"
+                            [disabled]="form.invalid || !form.dirty"
+                        >
+                            <mat-icon>save</mat-icon>
+                        </button>
+                        <button
+                            *ngIf="mode !== 'shop'"
+                            id="btn_shop"
+                            mat-fab
+                            (click)="onShop()"
+                            [disabled]="form.invalid || form.dirty"
+                        >
+                            <mat-icon>shopping_cart</mat-icon>
+                        </button>
+                        <button *ngIf="mode !== 'display'" id="btn_undo" mat-fab (click)="onUndo()">
+                            <mat-icon>backspace</mat-icon>
+                        </button>
+                        <button *ngIf="list?.id" id="btn_remove" mat-fab color="warn" (click)="onRemove()">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </div>
+                    <button id="btn_next" mat-fab (click)="onNext()" [disabled]="form.dirty || !existsNext()">
+                        <mat-icon>navigate_next</mat-icon>
+                    </button>
+                </div>
+                <mat-form-field id="inp_title">
+                    <input type="text" matInput formControlName="title" autocomplete="title" />
+                </mat-form-field>
+            </div>
+            <app-list-items #listItems
+                *ngIf="list?.items"
+                formArrayName="lines"
+                [lines]="form.get('lines')"
+                [list]="list"
+                [mode]="mode"
+                (add)="onAddItem()"
+                (clear)="onClearItems()"
+                (delete)="onDeleteItem($event)"
+            ></app-list-items>
+        </form>
+    </div>
+</section>
+<p>form dirty: {{ form.dirty }}</p>
+<p>form.invalid {{ form.invalid }}</p>
+<p>list: {{ list | json }}</p>
