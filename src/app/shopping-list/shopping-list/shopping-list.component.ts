@@ -22,15 +22,15 @@ export class ShoppingListComponent implements OnInit, OnDestroy {
     ) {}
 
     ngOnInit() {
-        this.userStore
-            .isAuthenticated()
-            .pipe(tap(authenticated => !authenticated && this.router.navigateByUrl('/signin')))
-            .subscribe();
-        this.subs.sink = this.listStore.stateChanged.subscribe(state => (this.lists = state.lists));
-        this.subs.sink = this.listStore
-            .getLists()
-            .pipe(take(1))
-            .subscribe();
+        // this.userStore
+        //     .isAuthenticated()
+        //     .pipe(tap(authenticated => !authenticated && this.router.navigateByUrl('/signin')))
+        //     .subscribe();
+        // this.subs.sink = this.listStore.stateChanged.subscribe(state => (this.lists = state.lists));
+        // this.subs.sink = this.listStore
+        //     .getLists()
+        //     .pipe(take(1))
+        //     .subscribe();
     }
 
     ngOnDestroy(): void {

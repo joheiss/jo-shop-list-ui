@@ -1,24 +1,19 @@
 <div class="jo-list-item">
     <ng-container [formGroup]="line">
-        <mat-form-field id="inp_description">
-            <input type="text" matInput formControlName="description" autocomplete="description" />
-        </mat-form-field>
-        <!--
-        <mat-form-field id="inp_quantity">
-            <input type="text" matInput formControlName="quantity" autocomplete="quantity" />
-        </mat-form-field>
-        -->
-        <mat-form-field id="inp_category">
-            <input type="text" matInput formControlName="category" autocomplete="category" />
-        </mat-form-field>
-        <button *ngIf="mode === 'edit'" id="btn_delete" mat-fab color="warn" (click)="onDelete()">
-            <mat-icon>clear</mat-icon>
-        </button>
-        <mat-checkbox
-            color="primary"
-            *ngIf="mode === 'shop'"
-            formControlName="isDone"
-            [value]="item.isDone"
-        ></mat-checkbox>
-    </ng-container>
+            <mat-form-field id="inp_description">
+                <input type="text" matInput formControlName="description" autocomplete="description"/>
+            </mat-form-field>
+            <mat-form-field id="inp_category">
+                <input type="text" matInput formControlName="category" autocomplete="category"/>
+            </mat-form-field>
+            <button *ngIf="mode === 'edit'" id="btn_delete" mat-fab color="warn" (click)="onDelete()">
+                <mat-icon>clear</mat-icon>
+            </button>
+            <mat-checkbox *ngIf="mode === 'shop'"
+                          class="jo-done"
+                          color="primary"
+                          formControlName="isDone"
+            ></mat-checkbox>
+        </ng-container>
 </div>
+

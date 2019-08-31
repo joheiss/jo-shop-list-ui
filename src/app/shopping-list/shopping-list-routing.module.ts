@@ -3,6 +3,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { ListComponent } from './list/list.component';
 import { AuthenticatedGuard } from '../user/authenticated.guard';
 import { ListsComponent } from './lists/lists.component';
+import { ShoppingListResolver } from './shopping-list.resolver';
 
 const routes: Routes = [
     {
@@ -12,6 +13,7 @@ const routes: Routes = [
             {
                 path: 'lists',
                 component: ListsComponent,
+                resolve: { lists: ShoppingListResolver }
             },
             {
                 path: 'list',

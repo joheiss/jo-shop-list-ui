@@ -1,13 +1,15 @@
-#inp_title {
-    width: 100%;
-}
-
 .jo-shopping-list {
     padding: 0 1rem;
+
+    & input {
+        font-size: 1.2rem;
+        font-weight: bolder;
+    }
 }
 
 .jo-list-title-line {
     width: 100%;
+    margin-bottom: 1rem;
 }
 
 .jo-toolbar {

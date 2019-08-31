@@ -1,12 +1,12 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { of, EMPTY, Observable } from 'rxjs';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
 import { ShoppingListDTO } from '../shopping-list.dto';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { UserStore } from 'src/app/user/store/user.store';
 import { ShoppingListStore } from '../store/shopping-list.store';
-import { tap, catchError, map, take } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 import { SubSink } from 'subsink';
-import { ShoppingListMode } from '../store/shopping-list.state';
+import { ShoppingListMode, ShoppingListSettings } from '../store/shopping-list.state';
 
 @Component({
     selector: 'app-lists',
@@ -17,12 +17,14 @@ export class ListsComponent implements OnInit, OnDestroy {
     message = '';
     subs = new SubSink();
     lists: ShoppingListDTO[];
-    list: Observable<ShoppingListDTO>;
+    list: ShoppingListDTO;
     mode: ShoppingListMode;
+    settings: ShoppingListSettings;
     index = 0;
 
     constructor(
         private readonly router: Router,
+        private readonly route: ActivatedRoute,
         private readonly userStore: UserStore,
         private readonly listStore: ShoppingListStore
     ) {}
@@ -37,14 +39,8 @@ export class ListsComponent implements OnInit, OnDestroy {
             this.index = state.index;
             this.list = state.current;
             this.mode = state.mode;
+            this.settings = state.settings;
         });
-        this.subs.sink = this.listStore
-            .getLists()
-            .pipe(
-                take(1),
-                tap(lists => lists.length === 0 && this.listStore.newList())
-            )
-            .subscribe();
     }
 
     ngOnDestroy(): void {

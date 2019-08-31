@@ -9,6 +9,6 @@ import { ListItemsComponent } from './list-items/list-items.component';
 
 @NgModule({
   declarations: [ListComponent, ListsComponent, ShoppingListComponent, ListItemComponent, ListItemsComponent],
-  imports: [SharedModule, ShoppingListRoutingModule]
+  imports: [SharedModule, ShoppingListRoutingModule],
 })
 export class ShoppingListModule { }

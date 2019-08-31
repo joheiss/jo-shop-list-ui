@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { ObservableStore } from '@codewithdan/observable-store';
 import { Observable, of, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, delay, map, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { ShoppingListState, shoppingListInitialState, ShoppingListMode } from './shopping-list.state';
+import { shoppingListInitialState, ShoppingListMode, ShoppingListSettings, ShoppingListState } from './shopping-list.state';
 import { ShoppingListService } from '../shopping-list.service';
 import { ShoppingListDTO } from '../shopping-list.dto';
 
@@ -52,6 +52,11 @@ export class ShoppingListStore extends ObservableStore<ShoppingListState> {
         return state.lists.length;
     }
 
+    getSettings(): ShoppingListSettings {
+        const state = this.getState();
+        return state.settings;
+    }
+
     createList(input: ShoppingListDTO): Observable<ShoppingListDTO> {
         const payload = this.mapToDTO(input);
         return this.listService.create(payload).pipe(
@@ -60,7 +65,7 @@ export class ShoppingListStore extends ObservableStore<ShoppingListState> {
                 const current = this.mapTrackId(state.current, list.id);
                 this.setState({ lists: [current, ...state.lists], current }, 'create_list');
             }),
-            catchError(err => this.handleError(err))
+            catchError(err => this.handleError(err)),
         );
     }
 
@@ -75,7 +80,7 @@ export class ShoppingListStore extends ObservableStore<ShoppingListState> {
                 lists[index] = current;
                 this.setState({ lists }, 'update_list');
             }),
-            catchError(err => this.handleError(err))
+            catchError(err => this.handleError(err)),
         );
     }
 
@@ -99,18 +104,39 @@ export class ShoppingListStore extends ObservableStore<ShoppingListState> {
                 }
                 this.setState({ lists, current, index }, 'delete_list');
             }),
-            catchError(err => this.handleError(err))
+            catchError(err => this.handleError(err)),
+        );
+    }
+
+    saveList(list: ShoppingListDTO): Observable<ShoppingListDTO> {
+        let obs: Observable<ShoppingListDTO>;
+        if (list.id) {
+            obs = this.updateList(list.id, list);
+        } else {
+            obs = this.createList(list);
+        }
+        return obs.pipe(
+            tap(() => console.log('... now is saving time ...')),
         );
     }
 
     changeList(list: ShoppingListDTO): void {
-        const { items, ...header } = list;
-        const current = { ...header, items: items.filter(i => i.description || i.category) };
+        const state = this.getState();
+        this.sortItems(list, state.mode);
         this.setState({ current: list }, 'change_list');
     }
 
     changeMode(mode: ShoppingListMode): void {
-        this.setState({ mode }, 'change_mode');
+        const state = this.getState();
+        const current = state.current;
+        this.sortItems(current, mode);
+        this.setState({ current, mode }, 'change_mode');
+    }
+
+    changeSettings(changes: Partial<ShoppingListSettings>): void {
+        const state = this.getState();
+        const settings = { ...state.settings, filtered: changes.filtered };
+        this.setState({ settings }, 'change_settings');
     }
 
     copyList(): void {
@@ -132,7 +158,6 @@ export class ShoppingListStore extends ObservableStore<ShoppingListState> {
     }
 
     newList(): void {
-        const state = this.getState();
         const date = new Date();
         const current = {
             title: 'New List ' + date.toLocaleString(),
@@ -144,12 +169,9 @@ export class ShoppingListStore extends ObservableStore<ShoppingListState> {
 
     selectList(index: number): void {
         const state = this.getState();
-        try {
-            const current = this.mapTrackId(state.lists[index], state.lists[index].id);
-            this.setState({ current, index }, 'select_list');
-        } catch (e) {
-            this.handleError(e);
-        }
+        const current = index >= 0 ? this.mapTrackId(state.lists[index], state.lists[index].id) : null;
+        this.sortItems(current, state.mode);
+        this.setState({ current, index }, 'select_list');
     }
 
     selectNextList(): void {
@@ -173,23 +195,24 @@ export class ShoppingListStore extends ObservableStore<ShoppingListState> {
         const lists = state.lists;
         const index = state.index;
         // restore current to recent current if list has not yet been stored
-        const current = lists[index];
-        const mode = ShoppingListMode.display;
-        this.setState({ current, mode }, 'undo_changes');
+        const current = { ...lists[index] };
+        // const mode = ShoppingListMode.edit;
+        // this.setState({ current, mode }, 'undo_changes');
+        this.setState({ current }, 'undo_changes');
+
     }
 
     private fetchLists(): Observable<ShoppingListDTO[]> {
-        const state = this.getState();
         this.setState({ loading: true });
         return this.listService.getAll().pipe(
             map(all => {
                 const lists = this.sortListsByIssuedAt(all);
                 const index = lists.length > 0 ? 0 : -1;
                 this.setState({ lists, index, loading: false, loaded: true }, 'fetch_lists');
-                const current = index >= 0 ? this.selectList(index) : null;
+                this.selectList(index);
                 return lists;
             }),
-            catchError(err => this.handleError(err))
+            catchError(err => this.handleError(err)),
         );
     }
 
@@ -200,14 +223,32 @@ export class ShoppingListStore extends ObservableStore<ShoppingListState> {
 
     private mapToDTO(input: ShoppingListDTO): ShoppingListDTO {
         const { items, ...header } = input;
-        items.forEach(item => delete item.trackId);
-        return { ...header, items: items.filter(item => item.description && item.description.length) };
+        items.forEach(item => {
+            delete item.trackId;
+            for (const prop in item) {
+                if (item[prop] && typeof (item[prop]) === 'string' && item[prop].length === 0) {
+                    item[prop] = null;
+                }
+            }
+        });
+        return { ...header, items: items.filter(item => !!item.description) };
     }
 
     private mapTrackId(list: ShoppingListDTO, id: string): ShoppingListDTO {
         const { items, ...header } = list;
         items.forEach(item => (item.trackId = header.id + item.id));
         return { ...header, items, id };
+    }
+
+    private sortItems(current: ShoppingListDTO, mode: ShoppingListMode): void {
+        if (!current) {
+            return;
+        }
+        if (mode === ShoppingListMode.edit) {
+            current.items.sort((a, b) => b.id - a.id);
+        } else {
+            current.items.sort((a, b) => a.category.toLocaleLowerCase().localeCompare(b.category.toLocaleLowerCase()));
+        }
     }
 
     private sortListsByIssuedAt(lists: ShoppingListDTO[]): ShoppingListDTO[] {

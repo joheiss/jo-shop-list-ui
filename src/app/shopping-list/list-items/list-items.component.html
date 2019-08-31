@@ -8,16 +8,29 @@
         <button *ngIf="mode === 'edit'" id="btn_add" mat-fab (click)="onAdd()">
             <mat-icon>add</mat-icon>
         </button>
-        <mat-icon *ngIf="mode === 'shop'">check_box</mat-icon>
+        <mat-icon class="jo-item-isdone-icon" *ngIf="mode === 'shop'">check_box</mat-icon>
     </div>
-    <div>
+    <div *ngIf="mode === 'edit'">
         <app-list-item
             *ngFor="let item of list?.items; let i = index; trackBy: trackByItemId"
-            [line]="lines.controls[i]"
+            [line]="lines.at(i)"
             [mode]="mode"
             [item]="item"
             (delete)="onDelete($event)"
             (update)="onUpdate($event)"
         ></app-list-item>
+    </div>
+    <div *ngIf="mode === 'shop'">
+        <ng-container *ngFor="let item of list?.items; let i = index; trackBy: trackByItemId">
+            <ng-container *ngIf="!settings.filtered || !item.isDone">
+                <app-list-item
+                [line]="lines.at(i)"
+                [mode]="mode"
+                [item]="item"
+                (delete)="onDelete($event)"
+                (update)="onUpdate($event)"
+                ></app-list-item>
+                </ng-container>
+            </ng-container>
     </div>
 </div>

@@ -1,8 +1,7 @@
-import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnInit, OnDestroy } from '@angular/core';
-import { FormGroup, FormControl } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { ShoppingItemDTO } from '../shopping-list.dto';
-import { ShoppingListStore } from '../store/shopping-list.store';
-import { tap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 import { SubSink } from 'subsink';
 import { ShoppingListMode } from '../store/shopping-list.state';
 
@@ -10,6 +9,7 @@ import { ShoppingListMode } from '../store/shopping-list.state';
     selector: 'app-list-item',
     templateUrl: './list-item.component.html',
     styleUrls: ['./list-item.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ListItemComponent implements OnChanges, OnDestroy {
     @Input() line: FormGroup;
@@ -20,28 +20,16 @@ export class ListItemComponent implements OnChanges, OnDestroy {
 
     private subs = new SubSink();
     private isLineBuilt = false;
-    private isChangeListenerRegistered = false;
 
-    constructor(private readonly listStore: ShoppingListStore) {}
+    constructor() {
+    }
 
     ngOnChanges(changes: SimpleChanges) {
         if (!this.isLineBuilt) {
-            this.line = this.buildLine();
-            if (this.mode === ShoppingListMode.display) {
-                this.line.disable();
-            } else {
-                this.line.enable();
-            }
+            this.buildLine();
             this.patchItem();
             this.line.markAsPristine();
-            this.registerChangeListeners(this.line.value);
-        }
-        if (changes.mode) {
-            if (this.mode === ShoppingListMode.display) {
-                this.line.disable();
-            } else {
-                this.line.enable();
-            }
+            this.registerChangeListeners();
         }
     }
 
@@ -50,13 +38,7 @@ export class ListItemComponent implements OnChanges, OnDestroy {
     }
 
     onDelete(): void {
-        console.log('item to be deleted: ', this.item);
         this.delete.emit(this.item);
-    }
-
-    onToggleDone(): void {
-        const isDone = !this.item.isDone;
-        this.update.emit({ ...this.item, isDone });
     }
 
     onUpdate(value: { [key: string]: any }): void {
@@ -72,15 +54,15 @@ export class ListItemComponent implements OnChanges, OnDestroy {
         }
     }
 
-    private buildLine(): FormGroup {
-        const line = new FormGroup({
-            description: new FormControl(null),
-            // quantity: new FormControl(null),
-            category: new FormControl(null),
-            isDone: new FormControl(false),
-        });
+    private buildLine(): void {
+        let formState = null;
+        if (this.mode === ShoppingListMode.shop) {
+            formState = { value: '', disabled: true };
+        }
+        this.line.addControl('description', new FormControl(formState));
+        this.line.addControl('category', new FormControl(formState));
+        this.line.addControl('isDone', new FormControl(false));
         this.isLineBuilt = true;
-        return line;
     }
 
     private patchItem(): void {
@@ -88,17 +70,16 @@ export class ListItemComponent implements OnChanges, OnDestroy {
         this.line.patchValue(patch, { emitEvent: false });
     }
 
-    private registerChangeListeners(group: FormGroup): void {
+    private registerChangeListeners(): void {
         Object.keys(this.line.value).forEach(prop => {
             this.subs.sink = this.line
                 .get(prop)
                 .valueChanges.pipe(
                     debounceTime(600),
                     distinctUntilChanged(),
-                    tap(value => this.onUpdate({ [prop]: value }))
+                    tap(value => this.onUpdate({ [prop]: value })),
                 )
                 .subscribe();
         });
-        this.isChangeListenerRegistered = true;
     }
 }
